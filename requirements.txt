@@ -1,1 +1,3 @@
-
+openai
+pyrogram
+deep_translator
