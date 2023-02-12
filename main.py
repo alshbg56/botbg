@@ -1,26 +1,36 @@
-import openai
 from pyrogram import Client, filters
-import info
-from deep_translator import GoogleTranslator
+from pytube import YouTube
+import os, info
+from datetime import datetime
 
-openai.api_key = "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"  # supply your API key however you choose
+download_start_time = datetime.now()
+
+def downloadCallback(stream, chunk, bytes_remaining):
+        global download_start_time
+        seconds_since_download_start = (datetime.now()-        download_start_time).total_seconds()    
+        total_size = stream.filesize
+        bytes_downloaded = total_size - bytes_remaining
+        percentage_of_completion = bytes_downloaded / total_size * 100
+        speed = round(((bytes_downloaded / 1024) / 1024) / seconds_since_download_start, 2)    
+        seconds_left = round(((bytes_remaining / 1024) / 1024) / float(speed), 2)
+        print(f"\r percentage_of_completion: {round(percentage_of_completion, 2)} % seconds_since_download_start: { round(seconds_since_download_start, 2)} seconds speed: {round(speed, 2)} Mbps seconds_left: {round(seconds_left, 2)} seconds", end=' ')
 
 app = Client("my_bot", api_id=info.api_id, api_hash=info.api_hash, bot_token=info.bot_token)
 
 @app.on_message(filters.private & filters.command('start'))
 async def hello(client, msg):
-  await client.send_message(msg.chat.id, f'welcome {msg.from_user.username} to bot **OpenAI GPT**')
+  await client.send_message(msg.chat.id, f'welcome {msg.from_user.username} to bot')
 
 
 @app.on_message(filters.private & filters.text)
-async def sendphoto(client, msg):
-    await client.send_message(msg.chat.id,f'جاري البحث...')
-    translated = GoogleTranslator(source='auto', target='en').translate(msg.text)  # output -> Weiter so, du bist großartig
-    print(translated)
-    image_resp = openai.Image.create(prompt=translated , n=4, size="512x512")
-    for i in image_resp['data']:
-        #print(i['url'])
-        await app.delete_messages(msg.chat.id, msg.id + 1)
-        await client.send_photo(msg.chat.id, i['url'], f"@P6SBOT,")
+async def sendvideo(client, msg):
+    await client.send_message(msg.chat.id,f'جاري التحميل...')
+    yt = YouTube(msg.text)
+    video = yt.streams.get_highest_resolution()
+    yt.register_on_progress_callback(downloadCallback)
+    pathv = video.download()
+    await app.delete_messages(msg.chat.id, msg.id + 1)
+    await client.send_video(msg.chat.id, pathv, f"@P6SBOT, **{round(video.filesize / 1024 / 1024, 1)} MB**")
+    os.remove(pathv)
 
 app.run()
