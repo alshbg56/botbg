@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 import info
 from deep_translator import GoogleTranslator
 
-openai.api_key = "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"  # supply your API key however you choose
+openai.api_key = "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"  # supply your API key however you choose
 
 app = Client("my_bot", api_id=info.api_id, api_hash=info.api_hash, bot_token=info.bot_token)
 
