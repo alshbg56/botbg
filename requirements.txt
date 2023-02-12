@@ -1,2 +1,4 @@
 pytube
 pyrogram
+tgcrypto
+uvloop
